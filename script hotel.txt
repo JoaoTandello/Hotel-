@@ -1,0 +1,99 @@
+DROP DATABASE IF EXISTS pousadars;
+CREATE DATABASE pousadars;
+
+USE pousadars;
+CREATE TABLE hospede (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    telefone VARCHAR(15),
+    email VARCHAR(100)
+);
+
+CREATE TABLE quarto (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numero INT NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    preco_diaria DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE reserva (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_hospede INT NOT NULL,
+    id_quarto INT NOT NULL,
+    data_checkin DATE NOT NULL,
+    data_checkout DATE NOT NULL,
+    dias INT,
+    FOREIGN KEY (id_hospede) REFERENCES hospede(id),
+    FOREIGN KEY (id_quarto) REFERENCES quarto(id)
+    );
+
+
+INSERT INTO hospede(nome, cpf, telefone, email) VALUES ('João Tandello', '515.134.068-92', '19991762312', 'joaotandello@gmail.com');
+INSERT INTO hospede(nome, cpf, telefone, email) VALUES ('Julia Gabrielly', '123.456.789-00', '19987654329', 'juliagabrielly@gmail.com');
+INSERT INTO hospede(nome, cpf, telefone, email) VALUES ('Elisa Marielle', '987.654.321-22', '19943981209', 'elisamarielle@gmail.com');
+INSERT INTO hospede(nome, cpf, telefone, email) VALUES ('Gabriela Caroline', '457.189.366-14', '19994591245', 'gabrielacaroline@gmail.com');
+
+
+INSERT INTO quarto(numero, tipo, preco_diaria) VALUES (101, 'Solteiro', 120.00);
+INSERT INTO quarto(numero, tipo, preco_diaria) VALUES (102, 'Casal', 180.00);
+INSERT INTO quarto(numero, tipo, preco_diaria) VALUES (201, 'Suíte', 280.00);
+INSERT INTO quarto(numero, tipo, preco_diaria) VALUES (202, 'Casal', 180.00);
+
+INSERT INTO reserva(id_hospede, id_quarto, data_checkin, data_checkout, dias) VALUES (1, 4, '2025-11-10', '2025-11-15', 5);
+INSERT INTO reserva(id_hospede, id_quarto, data_checkin, data_checkout, dias) VALUES (2, 3, '2025-11-12', '2025-11-14', 2);
+INSERT INTO reserva(id_hospede, id_quarto, data_checkin, data_checkout, dias) VALUES (3, 2, '2025-11-20', '2025-11-25', 5);
+INSERT INTO reserva(id_hospede, id_quarto, data_checkin, data_checkout, dias) VALUES (4, 1, '2025-11-06', '2025-11-08', 2);
+
+--------------------------------------------------------------------
+
+SELECT 
+    r.id AS 'Código Reserva',
+    h.nome AS 'Hóspede',
+    h.cpf AS 'CPF',
+    q.numero AS 'Quarto',
+    q.tipo AS 'Tipo',
+    q.preco_diaria AS 'Diária (R$)',
+    r.data_checkin AS 'Check-in',
+    r.data_checkout AS 'Check-out',
+    r.valor_total AS 'Total (R$)'
+FROM reserva r
+JOIN hospede h ON r.id_hospede = h.id
+JOIN quarto q ON r.id_quarto = q.id
+ORDER BY r.data_checkin;
+
+--------------------------------------------------------------------
+
+1. Listar todas as reservas feitas por um hóspede
+
+SELECT h.nome AS hospede, r.id AS id_da_reserva
+FROM hospede h
+INNER JOIN reserva r ON h.id = r.id_hospede;
+
+--------------------------------------------------------------------
+
+2. Verificar quais quartos estão ocupados em uma determinada data.
+
+SELECT q.numero AS num_do_quarto 
+FROM quarto q
+INNER JOIN reserva r ON q.id = r.id_quarto
+WHERE data_checkin = '2025-11-20';
+
+--------------------------------------------------------------------
+
+3. Calcular o valor total de uma reserva (preço da diária x número de dias)
+
+SELECT SUM(q.preco_diaria*r.dias) AS valor_total
+FROM quarto q
+INNER JOIN reserva r ON q.id = r.id_quarto
+WHERE r.id = 1;
+
+--------------------------------------------------------------------
+
+4. Mostrar o histórico de ocupação de um quarto específico.
+
+SELECT h.nome AS hospede, q.numero AS numero_quarto, r.data_checkin AS data_entrada, r.data_checkout AS data_saida
+FROM reserva r
+INNER JOIN hospede h ON h.id = r.id_hospede
+INNER JOIN quarto q ON q.id = r.id_quarto
+WHERE q.numero = 202;
